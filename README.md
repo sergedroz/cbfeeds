@@ -111,7 +111,7 @@ Each `report` has report metadata and a list of IOCs.
 | `summary`      | REQUIRED | A short description of this feed. | 
 | `tech_data`    | REQUIRED | More detailed technical description. | 
 | `icon`         | OPTIONAL | An optional base64-encoded PNG image to use in the user interface. |
-| `icon_small`   | OPTIONAL | An optional base64-encoded PNG "small" (50x50) image to use in the user interface. |
+| `icon_small`   | OPTIONAL | An optional base64-encoded PNG "small" (50x50) image to use in the user interface.  See notes.|
 | `category`     | OPTIONAL | An arbitrary category in which to place the feed.  See notes. |
 
 Notes:
