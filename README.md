@@ -110,7 +110,8 @@ Each `report` has report metadata and a list of IOCs.
 | `provider_url` | REQUIRED | Human-consumpable link to view more information about this feed. | 
 | `summary`      | REQUIRED | A short description of this feed. | 
 | `tech_data`    | REQUIRED | More detailed technical description. | 
-| `icon`         | OPTIONAL | An optional base64-encoded PNG image to use in the user interface. | 
+| `icon`         | OPTIONAL | An optional base64-encoded PNG image to use in the user interface. |
+| `icon_small`   | OPTIONAL | An optional base64-encoded PNG "small" (50x50) image to use in the user interface. |
 | `category`     | OPTIONAL | An arbitrary category in which to place the feed.  See notes. |
 
 Notes:
@@ -118,6 +119,8 @@ Notes:
 * The 'name' field must not include spaces or special characters.  Typically, it should be unique per-feed on a single server.  
 * The 'category' field was introduced in Carbon Black version 5.1
 * Examples of common categories include "Detonation", "Network Integration", and "Open Source Threat Intelligence"
+* The 'icon_small' field was introduced in Carbon Black version 5.1
+* The 'icon_small' image should be 50x50 pixels
 
 An example `feedinfo` structure, from the example_tor.py script:
 
