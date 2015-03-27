@@ -48,7 +48,10 @@ def reports_from_csv(lines):
         for line in unicode_csv_reader(lines):
             if len(line)== 0: continue
             try:
-                rawdate, url, ip, reverse_lookup, desc, registrant, asn, _, _ = line
+                print "1"
+                print line
+                rawdate, url, ip, reverse_lookup, desc, registrant, asn, _, _, _ = line
+                print "2"
 
                 #rawdate 2013/10/27_03:06
                 report_date = time.strptime(rawdate, "%Y/%m/%d_%H:%M") 
@@ -84,7 +87,7 @@ def reports_from_csv(lines):
 
             except Exception, err:
                 print "WARNING:  error parsing %s\n%s" % (line, err)
-                continue
+                sys.exit(0) 
     except Exception, err:
         print err
         print line
