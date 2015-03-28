@@ -78,7 +78,8 @@ def create():
                            "This feed combines the two domain names blocklists.",
                 'tech_data': "There are no requirements to share any data to receive this feed.",
                 "icon": "abuse.ch.jpg",
-                "icon_small": "abuse.ch.small.jpg"
+                "icon_small": "abuse.ch.small.jpg",
+                "category": "Open Source"
                 }
 
     # the lazy way to the icon 
