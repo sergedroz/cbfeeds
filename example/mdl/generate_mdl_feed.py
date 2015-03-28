@@ -107,7 +107,8 @@ def create(localcsv=None):
                            " This feed contains the most recent 180 days of entries.",
                 'tech_data': "There are no requirements to share any data to receive this feed.",
                 "icon": "mdl.png",
-                "icon_small": "mdl.small.jpg"
+                "icon_small": "mdl.small.jpg",
+                "category": "Open Source"
                 }
 
     # lazy way out 
