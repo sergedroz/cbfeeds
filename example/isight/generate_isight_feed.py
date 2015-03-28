@@ -29,6 +29,7 @@ def generate_feed_information():
     feed["provider_url"] = "http://www.isightpartners.com/"
     feed["icon"] = "isight.png"
     feed["icon_small"] = "isight.small.jpg"
+    feed["category"] = "Partner"
 
     return CbFeedInfo(**feed)
 
