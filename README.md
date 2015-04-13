@@ -107,7 +107,7 @@ Each `report` has report metadata and a list of IOCs.
 | -------------- | -------- |-------------| 
 | `name`         | REQUIRED | Internal name; must not include spaces or special characters.  See notes. | 
 | `display_name` | REQUIRED | Display name for the user interface. | 
-| `provider_url` | REQUIRED | Human-consumpable link to view more information about this feed. | 
+| `provider_url` | REQUIRED | Human-consumable link to view more information about this feed. | 
 | `summary`      | REQUIRED | A short description of this feed. | 
 | `tech_data`    | REQUIRED | More detailed technical description. | 
 | `icon`         | OPTIONAL | An optional base64-encoded PNG image to use in the user interface. |
