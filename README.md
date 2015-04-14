@@ -8,7 +8,7 @@ Use of the Carbon Black Feeds API is governed by the license found in LICENSE.md
 
 Carbon Black 4.0+ ships with support for threat intelligence feeds.  The Indicators of Compromise (IOCs) 
 contained in the feeds are compared to the sensor data as it arrives on the server.  Any activity matching an 
-IOC is tagged; users can search for the tags and, optionally, register for e-mail alerts.
+IOC is tagged; users can search for the tags and optionally be notified via e-mail, syslog, and pub/sub bus.
 
 Feeds allow Carbon Black servers to use freely available threat intelligence, proprietary customer threat data,
 and provides a mechanism to feed threat indicators from on-premise analytic sources to Carbon Black for verification,
