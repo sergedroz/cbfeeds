@@ -17,6 +17,14 @@ def build_cli_parser():
 
     cmd_parser.add_option("-f", "--feedfile", action="store", type="string", dest="feed_filename",
                           help="Feed Filename to validate")
+    cmd_parser.add_option("-u", "--url", action="store", type="string", dest="feed_url",
+                           help="URL of feed to validate")
+    cmd_parser.add_option("-n", "--no-ssl-verify", action="store_false", default=True, dest="ssl_verify",
+                          help="Do not verify server SSL certificate when used with -u")
+    cmd_parser.add_option("-C", "--clientcert", action="store", default=None, dest="clientcert",
+                          help="Client certificate filename for use with -u and -K")
+    cmd_parser.add_option("-K", "--key", action="store", default=None, dest="clientkey",
+                          help="Client private key for use with -u and -C")
     cmd_parser.add_option("-p", "--pedantic", action="store_true", default=False, dest="pedantic",
                           help="Validates that no non-standard JSON elements exist")
     cmd_parser.add_option("-e", "--exclude", action="store", default=None, dest="exclude",
@@ -35,6 +43,23 @@ def validate_file(feed_filename):
     contents = f.read()
     return contents
 
+def validate_url(feed_url, verify_server_cert, client_cert, client_key):
+    """
+    validate that the url exists and is retrievable
+    """
+    if feed_url.startswith("file://"):
+        return validate_file(feed_url[7:])
+
+    import requests
+
+    if client_cert is None or client_key is None:
+        response = requests.get(feed_url, verify=verify_server_cert)
+    else:
+        response = requests.get(feed_url, verify=verify_server_cert, cert=(client_cert, client_key))
+
+    response.raise_for_status()
+
+    return response.content
 
 def validate_json(contents):
     """
@@ -99,8 +124,8 @@ if __name__ == "__main__":
     parser = build_cli_parser()
     options, args = parser.parse_args(sys.argv)
 
-    if not options.feed_filename:
-        print "-> Must specify a feed filename to validate; use the -f switch or --help for usage"
+    if not options.feed_filename and not options.feed_url:
+        print "-> Must specify a feed filename or url to validate; use the -f or -u switch or --help for usage"
         sys.exit(0)
 
     # generate include and exclude (whitelist and blacklist) sets of indicators
@@ -108,15 +133,18 @@ if __name__ == "__main__":
     #
     include, exclude = gen_include_exclude_sets(options.include, options.exclude)
 
-    try:
-        contents = validate_file(options.feed_filename)
-        print "-> Validated that file exists and is readable"
-    except Exception, e:
-        print "-> Unable to validate that file exists and is readable"
-        print "-> Details:"
-        print
-        print e
-        sys.exit(0)
+    if options.feed_url:
+        contents = validate_url(options.feed_url, options.ssl_verify, options.clientcert, options.clientkey)
+    else:
+        try:
+            contents = validate_file(options.feed_filename)
+            print "-> Validated that file exists and is readable"
+        except Exception, e:
+            print "-> Unable to validate that file exists and is readable"
+            print "-> Details:"
+            print
+            print e
+            sys.exit(0)
 
     try:
         feed = validate_json(contents)
