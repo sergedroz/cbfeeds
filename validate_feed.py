@@ -134,7 +134,15 @@ if __name__ == "__main__":
     include, exclude = gen_include_exclude_sets(options.include, options.exclude)
 
     if options.feed_url:
-        contents = validate_url(options.feed_url, options.ssl_verify, options.clientcert, options.clientkey)
+        try:
+            contents = validate_url(options.feed_url, options.ssl_verify, options.clientcert, options.clientkey)
+            print "-> Validated that URL exists and is retrievable"
+        except Exception, e:
+            print "-> Unable to validate that URL exists and is retrievable"
+            print "-> Details:"
+            print
+            print e
+            sys.exit(0)
     else:
         try:
             contents = validate_file(options.feed_filename)
