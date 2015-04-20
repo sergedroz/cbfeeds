@@ -154,7 +154,7 @@ class CbReport(object):
         self.required = ["iocs", "timestamp", "link", "title", "id", "score"]
 
         # these fields are optional
-        self.optional = ["tags"]
+        self.optional = ["tags", "description"]
 
         # valid IOC types are "md5", "ipv4", "dns", "query"
         self.valid_ioc_types = ["md5", "ipv4", "dns", "query"]
