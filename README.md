@@ -103,16 +103,16 @@ Each `report` has report metadata and a list of IOCs.
 
 `feedinfo` is a JSON structure with the following entries:
 
-| name           | status   | description | 
-| -------------- | -------- |-------------| 
-| `name`         | REQUIRED | Internal name; must not include spaces or special characters.  See notes. | 
-| `display_name` | REQUIRED | Display name for the user interface. | 
+| name           | status   | type   | description | 
+| -------------- | -------- | ------ | ------- | 
+| `name`         | REQUIRED | string | Internal name.  Must be non-empty and must not include spaces or special characters.  See notes. | 
+| `display_name` | REQUIRED | Display name for the user interface. Must be non-empty string. | 
 | `provider_url` | REQUIRED | Human-consumable link to view more information about this feed. | 
-| `summary`      | REQUIRED | A short description of this feed. | 
-| `tech_data`    | REQUIRED | More detailed technical description. | 
+| `summary`      | REQUIRED | A short description of this feed. Must be non-empty string. | 
+| `tech_data`    | REQUIRED | More detailed technical description. Must be non-empty string. | 
 | `icon`         | OPTIONAL | An optional base64-encoded PNG image to use in the user interface. |
 | `icon_small`   | OPTIONAL | An optional base64-encoded PNG "small" (50x50) image to use in the user interface.  See notes.|
-| `category`     | OPTIONAL | An arbitrary category in which to place the feed.  See notes. |
+| `category`     | OPTIONAL | An arbitrary category in which to place the feed.  Must be non-empty string.  See notes. |
 
 Notes:
 
@@ -140,16 +140,16 @@ An example `feedinfo` structure, from the example_tor.py script:
 
 A `report` is a JSON structure with the following entries:
 
-| name           | status   | description | 
-| -------------- | -------- |-------------| 
-| `timestamp`    | REQUIRED | Time this report was last updated, in seconds since epoch (GMT).  This should always be updated whenever the content of the report changes.| 
-| `id`           | REQUIRED | A report id, must be unique per feed `name` for the lifetime of the feed.  Must be alphanumeric (including no spaces).| 
-| `link`         | REQUIRED | Human-consumbable link to information about this report.| 
-| `title`        | REQUIRED | A one-line title describing this report.| 
-| `score`        | REQUIRED | The severity of this report from -100 to 100, with 100 most critical.| 
-| `iocs`         | REQUIRED | The IOCs for this report.  A match on __any__ IOC will cause the activity to be tagged with this report id.  The IOC format is described below.| 
-| `tags`         | OPTIONAL | Zero or more optional alphanumeric tags to annotate the report.  See notes.|
-| `description`  | OPTIONAL | Human-consumable description of the report.  See notes.|
+| name           | status   | type   | description | 
+| -------------- | -------- |------- | -------------------------------- | 
+| `timestamp`    | REQUIRED | int    | Time this report was last updated, in seconds since epoch (GMT).  This should always be updated whenever the content of the report changes.| 
+| `id`           | REQUIRED | string | A report id, must be unique per feed `name` for the lifetime of the feed.  Must be non-empty and alphanumeric (including no spaces).| 
+| `link`         | REQUIRED | string | Human-consumbable link to information about this report. Must be non-empty string.| 
+| `title`        | REQUIRED | string | A one-line title describing this report.  Must be non-empty string.| 
+| `score`        | REQUIRED | int    | The severity of this report from -100 to 100, with 100 most critical.| 
+| `iocs`         | REQUIRED | dict   | The IOCs for this report.  A match on __any__ IOC will cause the activity to be tagged with this report id.  The IOC format is described below.| 
+| `tags`         | OPTIONAL | list   | Zero or more optional alphanumeric tags to annotate the report.  See notes.|
+| `description`  | OPTIONAL | string | Human-consumable description of the report.  Must be non-empty string.  See notes.|
 
 Notes:
 
