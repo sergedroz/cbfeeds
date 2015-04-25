@@ -106,13 +106,13 @@ Each `report` has report metadata and a list of IOCs.
 | name           | status   | type   | description | 
 | -------------- | -------- | ------ | ------- | 
 | `name`         | REQUIRED | string | Internal name.  Must be non-empty and must not include spaces or special characters.  See notes. | 
-| `display_name` | REQUIRED | Display name for the user interface. Must be non-empty string. | 
-| `provider_url` | REQUIRED | Human-consumable link to view more information about this feed. | 
-| `summary`      | REQUIRED | A short description of this feed. Must be non-empty string. | 
-| `tech_data`    | REQUIRED | More detailed technical description. Must be non-empty string. | 
-| `icon`         | OPTIONAL | An optional base64-encoded PNG image to use in the user interface. |
-| `icon_small`   | OPTIONAL | An optional base64-encoded PNG "small" (50x50) image to use in the user interface.  See notes.|
-| `category`     | OPTIONAL | An arbitrary category in which to place the feed.  Must be non-empty string.  See notes. |
+| `display_name` | REQUIRED | string | Display name for the user interface. Must be non-empty string. | 
+| `provider_url` | REQUIRED | string | Human-consumable link to view more information about this feed. | 
+| `summary`      | REQUIRED | string | A short description of this feed. Must be non-empty string. | 
+| `tech_data`    | REQUIRED | string | More detailed technical description. Must be non-empty string. | 
+| `icon`         | OPTIONAL | string | An optional base64-encoded PNG image to use in the user interface. |
+| `icon_small`   | OPTIONAL | string | An optional base64-encoded PNG "small" (50x50) image to use in the user interface.  See notes.|
+| `category`     | OPTIONAL | string | An arbitrary category in which to place the feed.  Must be non-empty string.  See notes. |
 
 Notes:
 
