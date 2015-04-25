@@ -91,7 +91,6 @@ class CbFeedInfo(object):
                          "summary", "tech_data", "provider_url"]
         self.optional = ["category", "icon", "version", "icon_small"]
         self.data = kwargs
-        self.data["version"] = 1
 
     def dump(self):
         self.validate()
@@ -108,6 +107,11 @@ class CbFeedInfo(object):
         for key in self.data.keys():
             if key not in self.required and key not in self.optional:
                 raise CbInvalidFeed("FeedInfo includes extraneous key '%s'" % key)
+
+        # all fields in feedinfo must be strings
+        for key in self.data.keys():
+            if not isinstance(self.data[key], unicode):
+                raise CbInvalidFeed("FeedInfo field %s must be of type str" % key)
 
         # validate shortname of this field is just a-z and 0-9, with at least one character
         if not self.data["name"].isalnum():
@@ -153,6 +157,12 @@ class CbReport(object):
         # these fields are required in every report
         self.required = ["iocs", "timestamp", "link", "title", "id", "score"]
 
+        # these fields must be of type string
+        self.typestring = ["link", "title", "id", "description"]
+
+        # these fields must be of type int
+        self.typeint = ["timestamp", "score"]
+
         # these fields are optional
         self.optional = ["tags", "description"]
 
@@ -195,6 +205,19 @@ class CbReport(object):
             if pedantic and key not in self.required and key not in self.optional:
                 raise CbInvalidReport("Report contains extra key '%s'" % key)
 
+        # CBAPI-36
+        # verify that all fields that should be strings are strings
+        for key in self.typestring:
+            if key in self.data.keys():
+                if not isinstance(self.data[key], basestring):
+                    raise CbInvalidReport("Report field '%s' must be a string" % key)
+
+        # verify that all fields that should be ints are ints
+        for key in self.typeint:
+            if key in self.data.keys():
+                if not isinstance(self.data[key], int):
+                    raise CbInvalidReport("Report field '%s' must be an int" % key)
+
         # validate that tags is a list of alphanumeric strings
         if "tags" in self.data.keys():
             if type(self.data["tags"]) != type([]):
@@ -204,6 +227,7 @@ class CbReport(object):
                     raise CbInvalidReport("Tag '%s' is not alphanumeric" % tag)
                 if len(tag) > 32:
                     raise CbInvalidReport("Tags must be 32 characters or fewer") 
+        
         # validate score is integer between -100 (if so specified) or 0 and 100
         try:
             int(self.data["score"])

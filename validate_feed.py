@@ -1,9 +1,10 @@
+#! /usr/bin/env python
+
 import sys
 import json
 import optparse
 
 import cbfeeds
-
 
 def build_cli_parser():
     """
