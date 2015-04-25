@@ -129,8 +129,8 @@ An example `feedinfo` structure, from the example_tor.py script:
     "provider_url": "http://www.dan.me.uk",
     "display_name": "Tor Exit Nodes",
     "name": "tor",
-    "tech_data": "There are no requirements to share any data to receive this feed.",
-    "summary": "This feed is a list of Tor Node IP addresses, updated every 30 minutes.",
+    "tech_data": "There are no requirements to share any data to receive this feed",
+    "summary": "This feed is a list of Tor Node IP addresses",
     "icon": "....",
     "category": "Open Source Threat Intelligence"
    }

@@ -90,6 +90,7 @@ class CbFeedInfo(object):
         self.required = ["name", "display_name",
                          "summary", "tech_data", "provider_url"]
         self.optional = ["category", "icon", "version", "icon_small"]
+        self.noemptystrings = ["name", "display_name", "summary", "tech_data", "category"]
         self.data = kwargs
 
     def dump(self):
@@ -112,6 +113,12 @@ class CbFeedInfo(object):
         for key in self.data.keys():
             if not isinstance(self.data[key], unicode):
                 raise CbInvalidFeed("FeedInfo field %s must be of type str" % key)
+
+        # CBAPI-38
+        # certain fields, when present, must not be empty strings
+        for key in self.data.keys():
+            if key in self.noemptystrings and self.data[key] == "":
+                raise CbInvalidFeed("The '%s' field must not be an empty string" % key)
 
         # validate shortname of this field is just a-z and 0-9, with at least one character
         if not self.data["name"].isalnum():
