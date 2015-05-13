@@ -117,6 +117,7 @@ Each `report` has report metadata and a list of IOCs.
 Notes:
 
 * The 'name' field must not include spaces or special characters.  Typically, it should be unique per-feed on a single server.  
+* Null strings are not allowed for REQUIRED entries
 * The 'category' field was introduced in Carbon Black version 5.1
 * Examples of common categories include "Detonation", "Network Integration", and "Open Source Threat Intelligence"
 * The 'icon_small' field was introduced in Carbon Black version 5.1
@@ -154,7 +155,8 @@ A `report` is a JSON structure with the following entries:
 Notes:
 
 * Tags were introduced with Carbon Black Server 5.1
-* Tags must be alphanumeric.
+* Tags must be alphanumeric
+* Tag values are implemented as a json list of strings
 * The description was introduced with Carbon Black Server 5.1
 
 ### iocs
@@ -203,7 +205,7 @@ An example `reports` list with two `report` structures, each with one IPv4 IOC, 
     }
   ]
 ```
-Another example with "query" IOC:
+Another example with "query" IOC, showing the use of description and tags:
 
 ```
 "reports": 
@@ -219,9 +221,13 @@ Another example with "query" IOC:
           }
         ]
       }, 
-      "score": 50, 
+      "score": 50,
       "link": "http://www.myfeedserver/feed/report/notepad_proc",
-      
+      "description": "This query will identify all notepad processes",
+      "tags": [
+        "notepad",
+        "process"
+      ],
       "id": "notepad_proc"
     },
     {
@@ -237,8 +243,13 @@ Another example with "query" IOC:
         ]
       }, 
       "score": 50,
-       
       "link": "http://www.dxmtest1.org/02",
+      "description": "This query will return the newly loaded modules.\n\nNote this does not include executable images",
+      "tags": [
+        "dll",
+        "module",
+        "new"
+      ],
       "id": "new_mod_loads"
     }
 ]
