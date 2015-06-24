@@ -5,6 +5,8 @@ python-cbfeeds
 from setuptools import setup
 import os
 import sys
+import requests
+
 
 setup(
     name='python-cbfeeds',
