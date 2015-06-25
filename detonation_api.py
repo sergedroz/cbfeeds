@@ -46,7 +46,7 @@ class DetApi(object):
         #post request to server
         #
         url = "http://127.0.0.1:9999/submit"
-        self.submit_md5_helper(fields)
+        #self.submit_md5_helper(fields)
         r = requests.post(url, files = files)
         r.raise_for_status()
         return r.json()
