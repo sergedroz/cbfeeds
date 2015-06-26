@@ -74,7 +74,7 @@ class DetApi(object):
             'timebox' : timebox,
             'detonation_results' : detonation_results
         }
-        print request
+
         #add this line for multipart data (JSON and file)
         #
         #headers = {'Content-type': 'multipart/form-data'}
