@@ -19,12 +19,14 @@ def build_cli_parser():
                       help = "the sample")
     parser.add_option("-t", "--timebox", action = "store", default = None, dest = "timebox",
                       help = "time box" )
+    parser.add_option("--status", action = "store", default = None, dest = "status",
+                      help = "status of the detonation")
     return parser
 
 def main(argv):
     parser = build_cli_parser()
     opts, args = parser.parse_args(argv)
-    if not opts.server_url or not opts.filename or not opts.orig_samp_size or not opts.sample or not opts.timebox:
+    if not opts.server_url or not opts.filename or not opts.orig_samp_size or not opts.sample or not opts.timebox or not opts.status:
         print "Missing required param; run with --help for usage"
         sys.exit(-1)
 
@@ -32,7 +34,7 @@ def main(argv):
     #
     det = detonation_api.DetApi(opts.server_url)
 
-    file_data = det.submit_file_data(opts.filename, opts.orig_samp_size, opts.sample, opts.timebox)
+    file_data = det.submit_file_data(opts.filename, opts.orig_samp_size, opts.sample, opts.timebox, opts.status)
     print file_data
 
 if __name__ == "__main__":

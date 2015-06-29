@@ -42,13 +42,14 @@ class DetApi(object):
         r.raise_for_status()
         return r.json()
 
-    def submit_file_data(self, filename, original_sample_size, sample, timebox):
+    def submit_file_data(self, filename, original_sample_size, sample, timebox, status):
         '''
         submits the data for a given file upload
         :param filename: name of the file
         :param original_sample_size: original sample size, in bytes
         :param sample: complete sample
         :param timebox: time for detonation
+        :param status: status of the detonation
         :return:
         '''
         analysis_results = {
@@ -59,7 +60,7 @@ class DetApi(object):
         }
 
         detonation_results = {
-            'status' : None,
+            'status' : status,
             'eta_to_analysis' : None,
             'eta_to_complete' : None,
             'analysis_complete' : None,
