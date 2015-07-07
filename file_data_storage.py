@@ -2,7 +2,7 @@ __author__ = 'bwolfson'
 
 #some data struct that holds all the files
 
-files = []
+global_dict = {}
 
 class FileForDetonation(object):
     def __init__(self, filename, original_sample_size, sample, timebox, detonation_results):
