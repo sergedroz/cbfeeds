@@ -17,13 +17,15 @@ def build_cli_parser():
                       help = "Name of the file to be uploaded")
     parser.add_option("-t", "--timebox", action = "store", default = None, type = int, dest = "timebox",
                       help = "Detonation time for sample" )
+    parser.add_option("-q", "--queue_time", action = "store", default = None, type = int, dest = "queue_time",
+                      help = "Queue Time")
 
     return parser
 
 def main(argv):
     parser = build_cli_parser()
     opts, args = parser.parse_args(argv)
-    if not opts.server_url or not opts.filename or not opts.timebox:
+    if not opts.server_url or not opts.filename or not opts.timebox or not opts.queue_time:
         print "Missing required param; run with --help for usage"
         sys.exit(-1)
     '''
@@ -48,7 +50,7 @@ def main(argv):
     #
     det = detonation_api.DetApi(opts.server_url)
 
-    det.submit_md5(opts.filename, opts.timebox)
+    det.submit_md5(opts.filename, opts.timebox, opts.queue_time)
 
     print file_data_storage.global_dict
 
