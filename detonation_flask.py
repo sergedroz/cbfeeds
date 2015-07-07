@@ -337,14 +337,5 @@ def update_status(md5):
                                 'analysis_complete' : 0
         }
 
-# wrapper around the flask make_response method that includes encoding to json
-def make_response_json(data, *args, **kwargs):
-    if args or kwargs:
-        response = make_response(simplejson.dumps(data, *args, **kwargs))
-    else:
-        response = make_response(cjson.encode(data))
-    response.headers['Content-Type'] = "application/json; charset=utf-8"
-    return response
-
 if __name__ == "__main__":
     app.run(port=9999, debug=True)
