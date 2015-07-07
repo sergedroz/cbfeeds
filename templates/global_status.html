@@ -26,6 +26,40 @@
             {% endfor %}
             </tbody>
         </table>
+        <p>Number of Analyzing samples: {{ count_analyzing }}</p>
+        <table class = "table">
+            <thead>
+                <tr>
+                    <th>Filename</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for analyzing in analyzing_samples %}
+                <tr>
+                    <td>
+                        {{analyzing['filename']}}
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        <p>Number of Queued samples: {{ count_queued }}</p>
+        <table class = "table">
+            <thead>
+                <tr>
+                    <th>Filename</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for queued in queued_samples %}
+                <tr>
+                    <td>
+                        {{queued['filename']}}
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
     </div>
 </body>
 </html>

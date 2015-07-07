@@ -50,6 +50,7 @@ def submit_md5():
             'time_started' : response['time_started'],
             'report' : response['report']
         }
+        update_status(md5)
         return "File Submitted, md5 hash for file is: %s" % md5
 
     else: #submitting through UI
@@ -85,6 +86,7 @@ def submit_md5():
             'time_started' : params['time_started'],
             'report' : params['report']
         }
+        update_status(md5)
         return "File Submitted, md5 hash for file is: %s" % md5
 
 
@@ -186,6 +188,7 @@ def status_global():
     queued_samples = []
     print global_dict
     for md5 in global_dict.keys():
+        update_status(md5)
         if global_dict[md5]['detonation_results']['status'].lower() == 'complete':
             completed_samples.append(global_dict[md5])
         elif global_dict[md5]['detonation_results']['status'].lower() == 'analyzing':
@@ -234,6 +237,35 @@ def make_response_json(data, *args, **kwargs):
         response = make_response(cjson.encode(data))
     response.headers['Content-Type'] = "application/json; charset=utf-8"
     return response
+
+def update_status(md5):
+    file_data = file_data_storage.global_dict[md5]
+    if file_data['time_started'] + float(file_data['timebox']) < time.time():
+            file_data['detonation_results'] = {
+                                'status' : 'Complete',
+                                'eta_to_analysis' : 0,
+                                'eta_to_complete' : 0,
+                                'analysis_complete' : "100% complete",
+                                'results' : {
+                                    'score' : -100,
+                                    'analysis_successful': True,
+                                    'error_description': "Bogus Error Description",
+                                    'analysis_summary': "The TIC did pretty well"
+                                }
+            }
+
+            return render_template('specific.html', file_data = file_data,
+                                   results = file_data['detonation_results']['results'])
+    else:
+            finish_time = file_data['time_started'] + float(file_data['timebox'])
+            eta_to_complete = finish_time - time.time()
+            percent_complete = ((float(file_data['timebox']) - eta_to_complete)/float(file_data['timebox']))*100
+            file_data['detonation_results'] = {
+                                'status' : 'Analyzing',
+                                'eta_to_analysis' : 0,
+                                'eta_to_complete' : finish_time - time.time(),
+                                'analysis_complete' : percent_complete
+            }
 
 
 if __name__ == "__main__":
