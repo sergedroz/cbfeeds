@@ -64,7 +64,6 @@ def submit_md5():
         filename = request.files['file'].filename
         detonation_time = request.form['timebox']
         queue_time = request.form['queue_time']
-        print queue_time
 
         #read the file from cwd into bytes so its contents can be held in the dictionary
         #
@@ -165,7 +164,7 @@ def status_md5(md5):
                 float(file_data['timebox'])
         analysis_start_time = file_data['time_submitted'] + float(file_data['queue_time'])
         now = time.time()
-        print file_data
+        
         if now > finish_time:
         #status is complete (binary analysis is finished)
 
