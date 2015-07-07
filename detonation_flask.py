@@ -5,10 +5,10 @@ Flask file for initial effort to stub out extending CBfeeds to detonation
 import cjson
 import simplejson
 from flask import Flask, request, make_response, render_template, json
-import file_data_storage
 import base64
 import time
 import hashlib
+import file_data_storage
 
 app = Flask(__name__)
 
@@ -39,6 +39,7 @@ def submit_md5():
     #Submitting through a cli script (detonation api)
 
         #get the server response, and decode the file content's bytes
+        #
         response = json.loads(request.data)
         md5 = response['md5']
         file = base64.b64decode(response['file'])
@@ -94,11 +95,15 @@ def submit_md5():
 @app.route('/submit/<md5>', methods = ['POST', 'GET'])
 def resubmit_md5(md5):
     '''
-    Resubmits a file for detonation, updates the global dictionary of sumbitted file data
-    :return:
+    Resubmits a file for detonation, updates the global dictionary of submitted file data
+    :return: if POST, a string telling that file was resubmitted, if GET, html template to resubmit a file
     '''
+    #the global dictionary of submitted files
+    #
     global_dict = file_data_storage.global_dict
-    print global_dict
+
+    #check if file exists
+    #
     does_exist = False
     for key in global_dict.keys():
         if key == md5:
@@ -109,6 +114,8 @@ def resubmit_md5(md5):
 
     if does_exist:
         if request.method == 'POST':
+            #update the global dictionary of submitted files
+            #
             old_data = global_dict[md5]
             global_dict[md5] = {
                 'original_sample_size' : old_data['original_sample_size'],
@@ -120,21 +127,28 @@ def resubmit_md5(md5):
                 'report' : old_data['report']
             }
             return "file resubmitted."
-        else: return render_template('resubmit.html', md5 = md5, global_dict = global_dict)
-    else: return "File does not exist"
 
+        else:
+            #request method is GET, show the html template to resubmit files
+            #
+            return render_template('resubmit.html', md5 = md5, global_dict = global_dict)
+    else:
+        return "File does not exist"
 
 @app.route('/status/<md5>', methods = ['GET'])
 def status_md5(md5):
     '''
     Output the status for this md5
     :param md5: the md5 of the sample
-    :return: the status
+    :return: html template displaying the status of this file
     '''
+
     #the global dictionary of submitted binaries
+    #
     global_dict = file_data_storage.global_dict
 
     #check if file exists in global dict
+    #
     does_exist = False
     for key in global_dict.keys():
         if key == md5:
@@ -142,7 +156,9 @@ def status_md5(md5):
         else:
             continue
 
-    # if it does, output the current status of detonation
+    # if it does, update the global dictionary of submitted files based on current time
+    # and output the status info
+    #
     if does_exist:
         file_data = global_dict[md5]
         finish_time = file_data['time_submitted'] + float(file_data['queue_time']) + \
@@ -151,6 +167,8 @@ def status_md5(md5):
         now = time.time()
         print file_data
         if now > finish_time:
+        #status is complete (binary analysis is finished)
+
             file_data['detonation_results'] = {
                                 'status' : 'Complete',
                                 'eta_to_analysis' : 0,
@@ -168,6 +186,8 @@ def status_md5(md5):
                                    results = file_data['detonation_results']['results'])
 
         elif analysis_start_time <= now <= finish_time:
+        #status is analyzing (binary analysis is currently happening)
+
             eta_to_complete = finish_time - now
             percent_complete = ((float(file_data['timebox']) - eta_to_complete)/float(file_data['timebox']))*100
             file_data['detonation_results'] = {
@@ -180,30 +200,39 @@ def status_md5(md5):
             return render_template('specific.html', file_data = file_data, results = None)
 
         else:
-            rest_of_queue_time = analysis_start_time - now
+        #status is queued (binary analysis has not started yet)
+            remaining_queue_time = analysis_start_time - now
             file_data['detonation_results'] = {
                                 'status' : 'Queued',
-                                'eta_to_analysis' : rest_of_queue_time,
-                                'eta_to_complete' : rest_of_queue_time + float(file_data['timebox']),
+                                'eta_to_analysis' : remaining_queue_time,
+                                'eta_to_complete' : remaining_queue_time + float(file_data['timebox']),
                                 'analysis_complete' : 0
             }
 
             return render_template('specific.html', file_data = file_data, results = None)
 
     else:
+    #file not found in the global dictionary
         return "File not found"
 
 @app.route('/status/global', methods = ['GET'])
 def status_global():
     '''
     display the global status of the feed provider, i.e. all the currently submitted samples
-    :return:
+    :return: html template displaying the global status
     '''
+    #global dictionary of submitted files
+    #
     global_dict = file_data_storage.global_dict
+
+    #lists to be passed to html template
+    #
     completed_samples = []
     analyzing_samples = []
     queued_samples = []
-    print global_dict
+
+    #populate the empty lists based on status
+    #
     for md5 in global_dict.keys():
         update_status(md5)
         if global_dict[md5]['detonation_results']['status'].lower() == 'complete':
@@ -212,6 +241,8 @@ def status_global():
             analyzing_samples.append(global_dict[md5])
         else: queued_samples.append(global_dict[md5])
 
+    #send data to html template and display global status
+    #
     return render_template('global_status.html', global_dict = global_dict, completed_samples = completed_samples,
                            analyzing_samples = analyzing_samples, queued_samples = queued_samples,
                            count_completed = len(completed_samples), count_analyzing = len(analyzing_samples),
@@ -222,7 +253,7 @@ def report_md5(md5):
     '''
     Output the detailed report for a sample
     :param md5: the md5 hash of the sample
-    :return:
+    :return: the detailed binary analysis report for the sample
     '''
 
     #the global dictionary of submitted binaries
@@ -244,7 +275,67 @@ def report_md5(md5):
 
 @app.route('/submit', methods=['GET'])
 def submitted_files():
+    '''
+    display all the currently submitted files for detonation
+    :return: html template displaying the files
+    '''
     return render_template('format.html', files = file_data_storage.global_dict)
+
+def update_status(md5):
+    '''
+    update the global dictionary of submitted files' detonation results
+    :param md5:
+    :return: void
+    '''
+
+    #the global dictionary of submitted files
+    #
+    global_dict = file_data_storage.global_dict
+
+    file_data = global_dict[md5] #this file's data
+    finish_time = file_data['time_submitted'] + float(file_data['queue_time']) + \
+                float(file_data['timebox'])
+    analysis_start_time = file_data['time_submitted'] + float(file_data['queue_time'])
+    now = time.time()
+
+    if now > finish_time:
+    #status is complete (binary analysis is finished)
+
+        file_data['detonation_results'] = {
+                            'status' : 'Complete',
+                            'eta_to_analysis' : 0,
+                            'eta_to_complete' : 0,
+                            'analysis_complete' : 100,
+                            'results' : {
+                                    'score' : -100,
+                                    'analysis_successful': True,
+                                    'error_description': "Bogus Error Description",
+                                    'analysis_summary': "The TIC did pretty well"
+                            }
+        }
+
+    elif analysis_start_time <= now <= finish_time:
+    #status is analyzing (binary analysis is currently happening)
+
+        eta_to_complete = finish_time - now
+        percent_complete = ((float(file_data['timebox']) - eta_to_complete)/float(file_data['timebox']))*100
+        file_data['detonation_results'] = {
+                                'status' : 'Analyzing',
+                                'eta_to_analysis' : 0,
+                                'eta_to_complete' : eta_to_complete,
+                                'analysis_complete' : percent_complete
+        }
+
+    else:
+    #status is queued (binary analysis has not started yet)
+
+        remaining_queue_time = analysis_start_time - now
+        file_data['detonation_results'] = {
+                                'status' : 'Queued',
+                                'eta_to_analysis' : remaining_queue_time,
+                                'eta_to_complete' : remaining_queue_time + float(file_data['timebox']),
+                                'analysis_complete' : 0
+        }
 
 # wrapper around the flask make_response method that includes encoding to json
 def make_response_json(data, *args, **kwargs):
@@ -254,52 +345,6 @@ def make_response_json(data, *args, **kwargs):
         response = make_response(cjson.encode(data))
     response.headers['Content-Type'] = "application/json; charset=utf-8"
     return response
-
-def update_status(md5):
-    global_dict = file_data_storage.global_dict
-    file_data = global_dict[md5]
-    finish_time = file_data['time_submitted'] + float(file_data['queue_time']) + \
-                float(file_data['timebox'])
-    analysis_start_time = file_data['time_submitted'] + float(file_data['queue_time'])
-    now = time.time()
-    print file_data
-    if now > finish_time:
-        file_data['detonation_results'] = {
-                            'status' : 'Complete',
-                            'eta_to_analysis' : 0,
-                            'eta_to_complete' : 0,
-                            'analysis_complete' : 100,
-                            'results' : {
-                                'score' : -100,
-                                'analysis_successful': True,
-                                'error_description': "Bogus Error Description",
-                                'analysis_summary': "The TIC did pretty well"
-                            }
-        }
-
-        return render_template('specific.html', file_data = file_data,
-                                results = file_data['detonation_results']['results'])
-
-    elif analysis_start_time <= now <= finish_time:
-        eta_to_complete = finish_time - now
-        percent_complete = ((float(file_data['timebox']) - eta_to_complete)/float(file_data['timebox']))*100
-        file_data['detonation_results'] = {
-                            'status' : 'Analyzing',
-                            'eta_to_analysis' : 0,
-                            'eta_to_complete' : eta_to_complete,
-                            'analysis_complete' : percent_complete
-        }
-
-        return render_template('specific.html', file_data = file_data, results = None)
-
-    else:
-        rest_of_queue_time = analysis_start_time - now
-        file_data['detonation_results'] = {
-                            'status' : 'Queued',
-                            'eta_to_analysis' : rest_of_queue_time,
-                            'eta_to_complete' : rest_of_queue_time + float(file_data['timebox']),
-                            'analysis_complete' : 0
-        }
 
 if __name__ == "__main__":
     app.run(port=9999, debug=True)
