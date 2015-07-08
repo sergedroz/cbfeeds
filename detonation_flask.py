@@ -4,25 +4,24 @@ Flask file for initial effort to stub out extending CBfeeds to detonation
 '''
 import cjson
 import simplejson
-from flask import Flask, request, make_response, render_template, json
+from flask import Flask, abort, request, make_response, render_template, json
 import base64
 import time
 import hashlib
 import file_data_storage
 
 app = Flask(__name__)
+max_sample_size = 413
 
 # additional detonation_params field to feedinfo section of a feed
 #
-'''
-{
-    'host' :
-    'resource_base' :
-    'max_sample_size' :
-    'supported_sample_types' :
-    'default_detonation_time' :
+detonation_params = {
+    'host' : "localhost",
+    'resource_base' : "/",
+    'max_sample_size' : 10000,
+    'supported_sample_types' : ['PE32','PE64', 'ELF32', 'ELF64', '<ETC.>'],
+    'default_detonation_time' : 10
 }
-'''
 
 @app.route('/submit', methods = ['POST'])
 def submit_md5():
@@ -65,11 +64,21 @@ def submit_md5():
         detonation_time = request.form['timebox']
         queue_time = request.form['queue_time']
 
+        if not detonation_time or not queue_time:
+            abort(404, "Please specify a value for both the detonation time and queue time")
+
         #read the file from cwd into bytes so its contents can be held in the dictionary
         #
-        f = open(filename, 'rb')
+        try:
+            f = open(filename, 'rb')
+        except IOError:
+            return "file out of scope of current working directory"
+
         bytes = f.read()
         md5 = hashlib.md5(bytes).hexdigest()
+
+        if len(bytes) > detonation_params['max_sample_size']:
+            abort(413, "Sample Too Large, max size is 10MB")
 
         #Update the global dictionary of submitted files keyed by md5
         #
@@ -132,7 +141,8 @@ def resubmit_md5(md5):
             #
             return render_template('resubmit.html', md5 = md5, global_dict = global_dict)
     else:
-        return "File does not exist"
+        abort(404, "Feed provider does not have access to this file, file must be submitted"
+                   " in order for feed provider to have access.")
 
 @app.route('/status/<md5>', methods = ['GET'])
 def status_md5(md5):
@@ -164,7 +174,7 @@ def status_md5(md5):
                 float(file_data['timebox'])
         analysis_start_time = file_data['time_submitted'] + float(file_data['queue_time'])
         now = time.time()
-        
+
         if now > finish_time:
         #status is complete (binary analysis is finished)
 
@@ -211,8 +221,8 @@ def status_md5(md5):
             return render_template('specific.html', file_data = file_data, results = None)
 
     else:
-    #file not found in the global dictionary
-        return "File not found"
+        abort(404, "Feed provider does not have access to this file, file must be submitted"
+                   "in order for feed provider to have access.")
 
 @app.route('/status/global', methods = ['GET'])
 def status_global():
@@ -270,7 +280,8 @@ def report_md5(md5):
     if does_exist:
         return global_dict[md5]['report']
     else:
-        return "file not found"
+        abort(404, "Feed provider does not have access to this file, file must be submitted"
+                   "in order for feed provider to have access.")
 
 @app.route('/submit', methods=['GET'])
 def submitted_files():
