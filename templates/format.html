@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+    <link href = "/static/css/bootstrap.min.css" rel = stylesheet media = "screen">
+</head>
+<body>
+    <div class = "container">
+        <h2>Current Files Submitted for Detonation</h2>
+        <table class = "table">
+            <thead>
+                <tr>
+                    <th>md5 hash</th>
+                    <th>Filename</th>
+                    <th>Original Sample Size</th>
+                    <th>Queue Time</th>
+                    <th>Timebox</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for md5 in files.keys() %}
+                <tr>
+                    <td>
+                        {{md5}}
+                    </td>
+                    <td>
+                        {{ files[md5]['filename'] }}
+                    </td>
+                    <td>
+                        {{ files[md5]['original_sample_size'] }} bytes
+                    </td>
+                    <td>
+                        {{ files[md5]['queue_time']}} seconds
+                    </td>
+                    <td>
+                        {{ files[md5]['timebox']}} seconds
+                    </td>
+
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+
+        <h1>Upload new File</h1>
+        <form action="" method=post enctype=multipart/form-data>
+            <p><input type=file name=file></p>
+            <h2>Set the queue time for the file </h2>
+            <p><input type=number name=queue_time> (click to enter number)</p>
+            <h2>Set the detonation time for the file (timebox)</h2>
+            <p><input type=number name=timebox> (click to enter number)</p>
+            <input type=submit value="Upload Data">
+        </form>
+    </div>
+</body>
+</html>
+
+
