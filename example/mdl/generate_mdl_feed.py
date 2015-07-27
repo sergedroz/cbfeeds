@@ -2,7 +2,6 @@ import os
 import sys
 import csv
 import time
-import shlex
 import urlparse
 
 from datetime import datetime
@@ -115,9 +114,9 @@ def create(localcsv=None):
                 'summary': "Malware Domain List is a non-commercial community project to track domains used by malware." +
                            " This feed contains the most recent 180 days of entries.",
                 'tech_data': "There are no requirements to share any data to receive this feed.",
-                "icon": "mdl.png",
-                "icon_small": "mdl.small.jpg",
-                "category": "Open Source"
+                'icon': "mdl.png",
+                'icon_small': "mdl.small.jpg",
+                'category': "Open Source"
                 }
 
     # lazy way out 
@@ -142,6 +141,7 @@ if __name__ == "__main__":
     if len(sys.argv) > 2:
         localcsv = sys.argv[2]
 
+    print bytes
     bytes = create(localcsv)
     open(outfile, "w").write(bytes)
 

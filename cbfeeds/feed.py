@@ -19,6 +19,11 @@ class CbFeed(object):
                      'reports': reports}
 
     def dump(self, validate=True):
+        '''
+        dumps the feed data
+        :param validate: is set, validates feed before dumping
+        :return: json string of feed data
+        '''
         if validate:
             self.validate()
         return json.dumps(self.data, cls=CbJSONEncoder, indent=2)
@@ -30,9 +35,10 @@ class CbFeed(object):
         return "CbFeed(%s)" % (self.data.get('feedinfo', "unknown"))
 
     def iter_iocs(self):
-        """
+        '''
         yields all iocs in the feed
-        """
+        '''
+
         data = json.loads(self.dump(validate=False))
         for report in data["reports"]:
             for md5 in report.get("iocs", {}).get("md5", []):
@@ -42,12 +48,12 @@ class CbFeed(object):
             for domain in report.get("iocs", {}).get("dns", []):
                 yield {"type": "dns", "ioc": domain, "report_id": report.get("id", "")}
 
-    def validate_report_list(slf, reports):
-        """
+    def validate_report_list(self, reports):
+        '''
         validates reports as a set, as compared to each report as a standalone entity
+        :param reports: list of reports
+        '''
 
-        @param[in] reports - list of reports
-        """
         reportids = set()
 
         # verify that no two reports have the same feed id
@@ -57,15 +63,17 @@ class CbFeed(object):
                 raise CbInvalidFeed("duplicate report id '%s'" % report['id']) 
             reportids.add(report['id'])
 
-    def validate(self, pedantic=False, serialized_data=None):
-        """
-        @param[in] pedantic - when set, perform strict validation
-        """
+    def validate(self, serialized_data=None):
+        '''
+        validates the feed
+        :param serialized_data: serialized data for the feed
+        '''
         if not serialized_data:
             # this should be identity, but just to be safe.
             serialized_data = self.dump(validate=False)
 
         data = json.loads(serialized_data)
+
         if not "feedinfo" in data:
             raise CbInvalidFeed("Feed missing 'feedinfo' data")
 
@@ -74,12 +82,12 @@ class CbFeed(object):
 
         # validate the feed info
         fi = CbFeedInfo(**data["feedinfo"])
-        fi.validate(pedantic=pedantic)
-       
+        fi.validate()
+
         # validate each report individually
         for rep in data["reports"]:
             report = CbReport(**rep)
-            report.validate(pedantic=pedantic)
+            report.validate()
 
         # validate the reports as a whole
         self.validate_report_list(data["reports"])
@@ -93,11 +101,25 @@ class CbFeedInfo(object):
         self.noemptystrings = ["name", "display_name", "summary", "tech_data", "category"]
         self.data = kwargs
 
+        # if they are present, set the icon fields of the data to hold
+        # the base64 encoded file data from their path
+        for icon_field in ["icon", "icon_small"]:
+            if icon_field in self.data and os.path.exists(self.data[icon_field]):
+                icon_path = self.data.pop(icon_field)
+                try:
+                    self.data[icon_field] = base64.b64encode(open(icon_path, "rb").read())
+                except Exception, err:
+                    raise CbIconError("Unknown error reading/encoding icon data: %s" % err)
+
     def dump(self):
+        '''
+        validates, then dumps the feed info data
+        :return: the feed info data
+        '''
         self.validate()
         return self.data
 
-    def validate(self, pedantic=False):
+    def validate(self):
         """ a set of checks to validate data before we export the feed"""
 
         if not all([x in self.data.keys() for x in self.required]):
@@ -109,12 +131,20 @@ class CbFeedInfo(object):
             if key not in self.required and key not in self.optional:
                 raise CbInvalidFeed("FeedInfo includes extraneous key '%s'" % key)
 
+        # check to see if icon_field can be base64 decoded
+        for icon_field in ["icon", "icon_small"]:
+            try:
+                base64.b64decode(self.data[icon_field])
+            except TypeError, err:
+                raise CbIconError("Icon must either be path or base64 data.  \
+                                        Path does not exist and base64 decode failed with: %s" % err)
+
         # all fields in feedinfo must be strings
         for key in self.data.keys():
-            if not isinstance(self.data[key], unicode):
-                raise CbInvalidFeed("FeedInfo field %s must be of type str" % key)
+            if not (isinstance(self.data[key], unicode) or isinstance(self.data[key], str)):
+                raise CbInvalidFeed("FeedInfo field %s must be of type %s, the field \
+                                    %s is of type %s " % (key, "unicode", key, type(self.data[key])))
 
-        # CBAPI-38
         # certain fields, when present, must not be empty strings
         for key in self.data.keys():
             if key in self.noemptystrings and self.data[key] == "":
@@ -124,26 +154,6 @@ class CbFeedInfo(object):
         if not self.data["name"].isalnum():
             raise CbInvalidFeed(
                 "Feed name %s may only contain a-z, A-Z, 0-9 and must have one character" % self.data["name"])
-
-        # if icons exist and points to a file, grab the bytes
-        # and base64 them
-        for icon_field in ["icon", "icon_small"]:
-            if icon_field in self.data and os.path.exists(self.data[icon_field]):
-                # TODO - enforce size restrictions? dimensions?  orientation?
-                # raise CbIconError("...")
-
-                icon_path = self.data.pop(icon_field)
-                try:
-                    self.data[icon_field] = base64.b64encode(open(icon_path, "r").read())
-                except Exception, err:
-                    raise CbIconError("Unknown error reading/encoding icon data: %s" % err)
-            # otherwise, double-check it's valid base64
-            elif icon_field in self.data:
-                try:
-                    base64.b64decode(self.data[icon_field])
-                except TypeError, err:
-                    raise CbIconError("Icon must either be path or base64 data.  \
-                                        Path does not exist and base64 decode failed with: %s" % err)
         
         return True
 
@@ -199,7 +209,8 @@ class CbReport(object):
             if c not in "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_.~%*()":
                 raise CbInvalidReport("Unescaped non-reserved character '%s' found in query for report %s; use percent-encoding" % (c, reportid))
  
-    def validate(self, pedantic=False):
+    def validate(self):
+        """ a set of checks to validate the report"""
 
         # validate we have all required keys
         global ip
@@ -207,9 +218,9 @@ class CbReport(object):
             missing_fields = ", ".join(set(self.required).difference(set(self.data.keys())))
             raise CbInvalidReport("Report missing required field(s): %s" % missing_fields)
 
-        # (pedantically) validate that no extra keys are present
+        # validate that no extra keys are present
         for key in self.data.keys():
-            if pedantic and key not in self.required and key not in self.optional:
+            if key not in self.required and key not in self.optional:
                 raise CbInvalidReport("Report contains extra key '%s'" % key)
 
         # CBAPI-36
@@ -266,8 +277,8 @@ class CbReport(object):
         if len(iocs.keys()) == 0:
             raise CbInvalidReport("Report with no IOCs in report %s" % (self.data["id"]))
 
-            # (pedantically) validate that no extra keys are present
-        if pedantic and len(set(iocs.keys()) - set(self.valid_ioc_types)) > 0:
+        # validate that no extra keys are present
+        if len(set(iocs.keys()) - set(self.valid_ioc_types)) > 0:
             raise CbInvalidReport(
                 "Report IOCs section contains extra keys: %s" % (set(iocs.keys()) - set(self.valid_ioc_types)))
 

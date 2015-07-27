@@ -4,8 +4,8 @@
 #
 
 import unittest
-import sys
-import os
+from requests.packages import urllib3
+urllib3.disable_warnings()
 
 class CbFeedTest(unittest.TestCase):
     def test_mdl(self):
