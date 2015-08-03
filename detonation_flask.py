@@ -2,9 +2,8 @@ __author__ = 'bwolfson'
 '''
 Flask file for initial effort to stub out extending CBfeeds to detonation
 '''
-import cjson
-import simplejson
-from flask import Flask, abort, request, make_response, render_template, json
+from flask import Flask, abort, request, render_template, json, Response
+from functools import wraps
 import base64
 import time
 import hashlib
@@ -23,7 +22,28 @@ detonation_params = {
     'default_detonation_time' : 10
 }
 
+def check_auth(username, password):
+    '''checks if username and password are valid'''
+    return username == "admin" and password ==  'test'
+
+def authenticate():
+    '''Sends a 401 response that enables basic auth'''
+    return Response(
+    'Could not verify your access level for that URL. \n'
+    'You have to login with proper credentials', 401,
+    {'WWW-Authenticate': 'Basic realm="Login Required"'})
+
+def requires_auth(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        auth = request.authorization
+        if not auth or not check_auth(auth.usename, auth.password):
+            return authenticate()
+        return f(*args, **kwargs)
+    return decorated
+
 @app.route('/submit', methods = ['POST'])
+@requires_auth
 def submit_md5():
     '''
     Submits a file for detonation and updates the global dictionary of submitted file data
