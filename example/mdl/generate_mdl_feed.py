@@ -2,7 +2,7 @@ import os
 import sys
 import csv
 import time
-import urlparse
+import urllib.parse
 
 from datetime import datetime
 from datetime import timedelta
@@ -25,18 +25,22 @@ DAYS_BACK = 90
 
 def unicode_csv_reader(unicode_csv_data, dialect=csv.excel, **kwargs):
     # csv.py doesn't do Unicode; encode temporarily as UTF-8:
-    csv_reader = csv.reader(utf_8_encoder(unicode_csv_data),
+    #csv_reader = csv.reader(utf_8_encoder(unicode_csv_data),
+    #                        dialect=dialect, **kwargs)
+    csv_reader = csv.reader(unicode_csv_data,
                             dialect=dialect, **kwargs)
+    
     for row in csv_reader:
         # decode UTF-8 back to Unicode, cell by cell:
-        yield [unicode(cell, 'utf-8') for cell in row]
+        #yield [str(cell, 'utf-8') for cell in row]
+        yield row
 
 def utf_8_encoder(unicode_csv_data):
     for line in unicode_csv_data:
         try:
             yield line.encode('utf-8')
         except UnicodeError:
-            print "WARNING: unicode error, skipping %s" % line
+            print("WARNING: unicode error, skipping %s" % line)
             continue
 
 def reports_from_csv(lines):
@@ -61,13 +65,13 @@ def reports_from_csv(lines):
                     continue 
 
                 # url www.slivki.com.ua/as/Ponynl.exe
-                url = urlparse.urlsplit("http://%s" % url)
+                url = urllib.parse.urlsplit("http://%s" % url)
                 host = url.netloc
                 if ":" in host:
                     host = host.split(":", 1)[0]
 
                 if len(host) <= 3:
-                    print "WARNING: no domain, skipping %s" % line
+                    print("WARNING: no domain, skipping %s" % line)
                     continue
 
                 # avoid duplicate report ids
@@ -90,12 +94,12 @@ def reports_from_csv(lines):
 
                 reports.append(CbReport(**fields))
 
-            except Exception, err:
-                print "WARNING:  error parsing %s\n%s" % (line, err)
+            except Exception as err:
+                print("WARNING:  error parsing %s\n%s" % (line, err))
                 sys.exit(0) 
-    except Exception, err:
-        print err
-        print line
+    except Exception as err:
+        print(err)
+        print(line)
 
     return reports
 
@@ -133,7 +137,7 @@ def create(localcsv=None):
 
 if __name__ == "__main__":
     if len(sys.argv) <= 1:
-        print "usage: generate_mdl_feed.py [outfile] <local.csv>"
+        print("usage: generate_mdl_feed.py [outfile] <local.csv>")
         sys.exit()
     
     outfile = sys.argv[1]
@@ -141,7 +145,6 @@ if __name__ == "__main__":
     if len(sys.argv) > 2:
         localcsv = sys.argv[2]
 
-    print bytes
     bytes = create(localcsv)
     open(outfile, "w").write(bytes)
 
