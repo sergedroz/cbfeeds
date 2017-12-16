@@ -1,5 +1,5 @@
 import sys
-import urllib
+import urllib.request, urllib.parse, urllib.error
 import optparse
 
 def build_cli_parser():
@@ -36,11 +36,11 @@ if __name__ == "__main__":
     options, args = parser.parse_args(sys.argv)
 
     if not options.query:
-        print "-> Must specify a query to encode; use the -q switch or --help for usage"
+        print("-> Must specify a query to encode; use the -q switch or --help for usage")
         sys.exit(0)
  
-    print options.query
-    print
+    print(options.query)
+    print()
 
     # unless overridden by operator, prepend a cb.urlver=1&q= to the query if 
     # if does not already exist.  this makes it possible for customer to copy and
@@ -49,6 +49,6 @@ if __name__ == "__main__":
     # see CBAPI-7
     #
     if options.prepend and not is_query_complete(options.query):
-        print "cb.urlver=1&q=" + urllib.quote(options.query)  
+        print("cb.urlver=1&q=" + urllib.parse.quote(options.query))  
     else:
-        print urllib.quote(options.query)
+        print(urllib.parse.quote(options.query))
