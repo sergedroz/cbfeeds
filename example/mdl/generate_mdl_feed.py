@@ -23,26 +23,6 @@ from cbfeeds import CbFeedInfo
 
 DAYS_BACK = 90
 
-def unicode_csv_reader(unicode_csv_data, dialect=csv.excel, **kwargs):
-    # csv.py doesn't do Unicode; encode temporarily as UTF-8:
-    #csv_reader = csv.reader(utf_8_encoder(unicode_csv_data),
-    #                        dialect=dialect, **kwargs)
-    csv_reader = csv.reader(unicode_csv_data,
-                            dialect=dialect, **kwargs)
-    
-    for row in csv_reader:
-        # decode UTF-8 back to Unicode, cell by cell:
-        #yield [str(cell, 'utf-8') for cell in row]
-        yield row
-
-def utf_8_encoder(unicode_csv_data):
-    for line in unicode_csv_data:
-        try:
-            yield line.encode('utf-8')
-        except UnicodeError:
-            print("WARNING: unicode error, skipping %s" % line)
-            continue
-
 def reports_from_csv(lines):
     """ takes a file-like object that is full list of CSV data from
         from malwaredomainlist.  creates a report per line """
@@ -50,7 +30,7 @@ def reports_from_csv(lines):
     unique_domains = set()
 
     try:
-        for line in unicode_csv_reader(lines):
+        for line in csv.reader(lines, dialect=csv.excel):
             if len(line)== 0: continue
             try:
                 rawdate, url, ip, reverse_lookup, desc, registrant, asn, _, _, _ = line
