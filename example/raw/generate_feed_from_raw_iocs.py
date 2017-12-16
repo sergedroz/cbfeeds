@@ -64,7 +64,7 @@ def build_reports(options):
             # parsed as an ipv4 address!
             #
             ips.append(raw_ioc)
-        except Exception, e:
+        except Exception as e:
 
             # attept to parse the line as a md5 and, if that fails,
             # as a domain.  use trivial parsing
@@ -115,15 +115,15 @@ def create_feed(options):
     # include in the feed information
     # 
     if options.icon:
-        bytes = base64.b64encode(open(options.icon).read())
-        feedinfo['icon'] = bytes 
+        b64bytes = base64.b64encode(open(options.icon).read()).decode("utf-8")
+        feedinfo['icon'] = b64bytes 
     
     # if a small icon was provided, encode as base64 and 
     # include in the feed information
     #
     if options.small_icon:
-        bytes = base64.b64encode(open(options.small_icon).read())
-        feedinfo['icon_small'] = bytes
+        b64bytes = base64.b64encode(open(options.small_icon).read()).decode("utf-8")
+        feedinfo['icon_small'] = b64bytes
   
     # if a feed category was provided, include it in the feed information
     #
@@ -192,7 +192,7 @@ if __name__ == "__main__":
        not options.techdata or \
        not options.ioc_filename or \
        not options.report:
-        print "-> Missing option"
+        print("-> Missing option")
         sys.exit(0)
 
-    print create_feed(options)
+    print(create_feed(options))
