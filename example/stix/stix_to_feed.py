@@ -15,7 +15,7 @@ try:
     from cybox.bindings.domain_name_object import DomainNameObjectType
     from cybox.bindings.address_object import AddressObjectType
 except ImportError:
-    print "Error importing required libraries.  Requires python-stix library.  See https://stix.mitre.org/"
+    print("Error importing required libraries.  Requires python-stix library.  See https://stix.mitre.org/")
     sys.exit(-1)
 
 
@@ -111,8 +111,8 @@ def parse_observables(observables):
     for observable in observables:
         try:
             merge(iocs, parse_observable(observable))
-        except Exception, err:
-            print "-> Unexpected error parsing observable: %s; continuing." % err
+        except Exception as err:
+            print("-> Unexpected error parsing observable: %s; continuing." % err)
 
     return iocs
 
@@ -145,11 +145,11 @@ def build_report(fname):
               'title': pkg.stix_header.title,
     }
 
-    if len(iocs.keys()) == 0 or all(len(iocs[k]) == 0 for k in iocs):
-        print "-> No suitable observables found in %s; skipping." % fname
+    if len(list(iocs.keys())) == 0 or all(len(iocs[k]) == 0 for k in iocs):
+        print("-> No suitable observables found in %s; skipping." % fname)
         return None
 
-    print "-> Including %s observables from %s." % (sum(len(iocs[k]) for k in iocs), fname)
+    print("-> Including %s observables from %s." % (sum(len(iocs[k]) for k in iocs), fname))
     return CbReport(**fields)
 
 
@@ -193,11 +193,11 @@ def build_reports(input_source):
                 try:
                     rep = build_report(os.path.join(root, f))
                     if rep: reports.append(rep)
-                except UnsupportedVersionError, err:
-                    print "-> Skipping %s\n    UnsupportedVersionError: %s\n    see https://github.com/STIXProject/python-stix/issues/124" % (
-                        f, err)
-                except Exception, err:
-                    print "-> Unexpected error parsing %s: %s; skipping." % (f, err)
+                except UnsupportedVersionError as err:
+                    print("-> Skipping %s\n    UnsupportedVersionError: %s\n    see https://github.com/STIXProject/python-stix/issues/124" % (
+                        f, err))
+                except Exception as err:
+                    print("-> Unexpected error parsing %s: %s; skipping." % (f, err))
 
     return reports
 
@@ -225,7 +225,7 @@ if __name__ == "__main__":
     parser = build_cli_parser()
     options, args = parser.parse_args(sys.argv)
     if not options.input or not options.output:
-        print "-> Must specify and input file/directory and output filename"
+        print("-> Must specify and input file/directory and output filename")
         sys.exit(-1)
 
     bytes = create(options.input)
