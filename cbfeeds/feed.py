@@ -108,8 +108,8 @@ class CbFeedInfo(object):
             if icon_field in self.data and os.path.exists(self.data[icon_field]):
                 icon_path = self.data.pop(icon_field)
                 try:
-                    self.data[icon_field] = base64.b64encode(open(icon_path, "rb").read())
-                except Exception, err:
+                    self.data[icon_field] = base64.b64encode(open(icon_path, "rb").read()).decode("utf-8")
+                except Exception as err:
                     raise CbIconError("Unknown error reading/encoding icon data: %s" % err)
 
     def dump(self):
@@ -123,12 +123,12 @@ class CbFeedInfo(object):
     def validate(self, pedantic = False):
         """ a set of checks to validate data before we export the feed"""
 
-        if not all([x in self.data.keys() for x in self.required]):
+        if not all([x in list(self.data.keys()) for x in self.required]):
             missing_fields = ", ".join(set(self.required).difference(set(self.data.keys())))
             raise CbInvalidFeed("FeedInfo missing required field(s): %s" % missing_fields)
 
         # verify no non-supported keys are present
-        for key in self.data.keys():
+        for key in list(self.data.keys()):
             if key not in self.required and key not in self.optional:
                 raise CbInvalidFeed("FeedInfo includes extraneous key '%s'" % key)
 
@@ -136,7 +136,7 @@ class CbFeedInfo(object):
         for icon_field in ["icon", "icon_small"]:
             try:
                 base64.b64decode(self.data[icon_field])
-            except TypeError, err:
+            except TypeError as err:
                 raise CbIconError("Icon must either be path or base64 data.  \
                                         Path does not exist and base64 decode failed with: %s" % err)
             except KeyError as err:
@@ -144,13 +144,13 @@ class CbFeedInfo(object):
                 pass
 
         # all fields in feedinfo must be strings
-        for key in self.data.keys():
-            if not (isinstance(self.data[key], unicode) or isinstance(self.data[key], str)):
+        for key in list(self.data.keys()):
+            if not (isinstance(self.data[key], str) or isinstance(self.data[key], str)):
                 raise CbInvalidFeed("FeedInfo field %s must be of type %s, the field \
                                     %s is of type %s " % (key, "unicode", key, type(self.data[key])))
 
         # certain fields, when present, must not be empty strings
-        for key in self.data.keys():
+        for key in list(self.data.keys()):
             if key in self.noemptystrings and self.data[key] == "":
                 raise CbInvalidFeed("The '%s' field must not be an empty string" % key)
 
@@ -218,35 +218,35 @@ class CbReport(object):
 
         # validate we have all required keys
         global ip
-        if not all([x in self.data.keys() for x in self.required]):
+        if not all([x in list(self.data.keys()) for x in self.required]):
             missing_fields = ", ".join(set(self.required).difference(set(self.data.keys())))
             raise CbInvalidReport("Report missing required field(s): %s" % missing_fields)
 
         # validate that no extra keys are present
-        for key in self.data.keys():
+        for key in list(self.data.keys()):
             if key not in self.required and key not in self.optional:
                 raise CbInvalidReport("Report contains extra key '%s'" % key)
 
         # (pedantically) validate only required keys are present
-        if pedantic and len(self.data.keys()) > len(self.required):
+        if pedantic and len(list(self.data.keys())) > len(self.required):
             raise CbInvalidReport("Report contains extra keys: %s" %
                                   (set(self.data.keys()) - set(self.required)))
 
         # CBAPI-36
         # verify that all fields that should be strings are strings
         for key in self.typestring:
-            if key in self.data.keys():
-                if not isinstance(self.data[key], basestring):
+            if key in list(self.data.keys()):
+                if not isinstance(self.data[key], str):
                     raise CbInvalidReport("Report field '%s' must be a string" % key)
 
         # verify that all fields that should be ints are ints
         for key in self.typeint:
-            if key in self.data.keys():
+            if key in list(self.data.keys()):
                 if not isinstance(self.data[key], int):
                     raise CbInvalidReport("Report field '%s' must be an int" % key)
 
         # validate that tags is a list of alphanumeric strings
-        if "tags" in self.data.keys():
+        if "tags" in list(self.data.keys()):
             if type(self.data["tags"]) != type([]):
                 raise CbInvalidReport("Tags must be a list")
             for tag in self.data["tags"]:
@@ -283,7 +283,7 @@ class CbReport(object):
         iocs = self.data['iocs']
 
         # validate that there are at least one type of ioc present
-        if len(iocs.keys()) == 0:
+        if len(list(iocs.keys())) == 0:
             raise CbInvalidReport("Report with no IOCs in report %s" % (self.data["id"]))
 
         # (pedantically) validate that no extra keys are present
@@ -292,8 +292,8 @@ class CbReport(object):
                 "Report IOCs section contains extra keys: %s" % (set(iocs.keys()) - set(self.valid_ioc_types)))
 
         # Let us check and make sure that for "query" ioc type does not contain other types of ioc
-        query_ioc = "query" in iocs.keys()
-        if query_ioc and len(iocs.keys()) > 1:
+        query_ioc = "query" in list(iocs.keys())
+        if query_ioc and len(list(iocs.keys())) > 1:
             raise CbInvalidReport(
                 "Report IOCs section for \"query\" contains extra keys: %s for report %s" %
                 (set(iocs.keys()), self.data["id"]))
@@ -302,7 +302,7 @@ class CbReport(object):
             iocs_query = iocs["query"][0]
            
             # validate that the index_type field exists 
-            if "index_type" not in iocs_query.keys():
+            if "index_type" not in list(iocs_query.keys()):
                 raise CbInvalidReport("Query IOC section for report %s missing index_type" % self.data["id"])
             
             # validate that the index_type is a valid value
@@ -312,7 +312,7 @@ class CbReport(object):
                     (iocs_query.get("index_type", None), self.data["id"]))
 
             # validate that the search_query field exists 
-            if "search_query" not in iocs_query.keys():
+            if "search_query" not in list(iocs_query.keys()):
                 raise CbInvalidReport("Query IOC for report %s missing 'search_query'" % self.data["id"])
 
             # validate that the search_query field is at least minimally valid
