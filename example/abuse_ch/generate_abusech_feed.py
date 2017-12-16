@@ -38,13 +38,41 @@ def get_zeus():
         'title': 'abuse.ch Zeus hit on Standard domain blocklist',
         'score': 100,
     }
-    reports.append(CbReport(**fields))
-    return reports
+    if domains:
+        reports.append(CbReport(**fields))
+        return reports
+    else:
+        return []
 
-
-def get_palevo():
+def get_feodo():
     reports = []
-    r = requests.get("https://palevotracker.abuse.ch/blocklists.php?download=domainblocklist")
+    r = requests.get("https://feodotracker.abuse.ch/blocklist/?download=domainblocklist")
+    lines = r.text.split("\n")
+    domains = []
+    for line in lines:
+        if len(line) < 3: continue
+        if line[0] == "#": continue
+
+        domains.append(line.strip())
+    
+    fields = {'iocs': {
+        "dns": domains,
+    },
+        'timestamp': int(time.mktime(time.gmtime())),
+        'link': "https://feodotracker.abuse.ch/blocklist/?download=domainblocklist",
+        'id': 'abusech-feodo',
+        'title': 'abuse.ch feodo Domain hit on domain blocklist',
+        'score': 100,
+    }
+    if domains:
+        reports.append(CbReport(**fields))
+        return reports
+    else:
+        return []
+
+def get_ransomware():
+    reports = []
+    r = requests.get("https://ransomwaretracker.abuse.ch/downloads/RW_DOMBL.txt")
     lines = r.text.split("\n")
     domains = []
     for line in lines:
@@ -57,19 +85,28 @@ def get_palevo():
         "dns": domains,
     },
         'timestamp': int(time.mktime(time.gmtime())),
-        'link': "https://palevotracker.abuse.ch/blocklists.php?download=domainblocklist",
-        'id': 'abusech-palevo',
-        'title': 'abuse.ch Palevo hit on domain blocklist',
+        'link': "https://ransomwaretracker.abuse.ch/downloads/RW_DOMBL.txt",
+        'id': 'abusech-ransomware',
+        'title': 'abuse.ch Ransomware on domain blocklist',
         'score': 100,
     }
-    reports.append(CbReport(**fields))
-    return reports
-
+    if domains:
+        reports.append(CbReport(**fields))
+        return reports
+    else:
+        return []
 
 def create():
     reports = []
-    reports.extend(get_zeus())
-    reports.extend(get_palevo())
+    tmp = get_zeus()
+    if tmp:
+        reports.extend(tmp)
+    tmp = get_feodo()
+    if tmp:
+        reports.extend(tmp)
+    tmp = get_ransomware()
+    if tmp:
+        reports.extend(tmp)
 
     feedinfo = {'name': 'abusech',
                 'display_name': "abuse.ch Malware Domains",
@@ -97,7 +134,7 @@ def create():
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
-        print "usage: generate_abuse.ch_feed.py [outfile]"
+        print("usage: generate_abuse.ch_feed.py [outfile]")
         sys.exit()
 
     feed_created = create()
